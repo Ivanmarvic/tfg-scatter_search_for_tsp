@@ -1,12 +1,14 @@
-from typing import Callable
-def heapPermutations(k:int, array:list, output: Callable[[list], None]) -> None:
-    if k == 1:
-        output(array)
-    else:
-        for i in range(k):
-            #even / par
-            heapPermutations(k-1, array, output)
-            if k % 2 == 0: 
-                array[i], array[k-1] = array[k-1], array[i]
-            else:
-                array[0], array[k-1] = array[k-1], array[0]
+import math
+
+# devuelve la permutación k del array original O(n²)
+def lehmerPermutation(k:int, original_array:list) -> list:
+    array_copy = original_array.copy()
+    result = list()
+    for i in range(len(array_copy),  0, -1):
+        fact = math.factorial(i - 1)
+        p = k // fact
+        result.append(array_copy.pop(p))
+        k = k % fact
+        
+    return result
+

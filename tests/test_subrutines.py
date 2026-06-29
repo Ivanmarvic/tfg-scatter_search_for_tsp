@@ -37,33 +37,31 @@ def test_ilustrativeDiversification(input_data):
     assert len(out) == input_data["instances"] 
     for instance in out:
         assert len(instance) == input_data["size"]
-        # print(instance)
-    # assert False
+
 TEST_CASES = [
-        {"n": 4}
+        ({"n": 3, "k": 5}, [2,1,0]),
+        ({"n": 7, "k": 2982}, [4,0,6,2,1,3,5]),
         ]
-@pytest.mark.parametrize("input_data", TEST_CASES)
-def test_heapPermutations(input_data):
+
+@pytest.mark.parametrize("input_data, expected_out", TEST_CASES)
+def test_lehmerPermutation(input_data, expected_out):
     a = list(range(input_data["n"]))
-    perms = list()
-    utils.heapPermutations(input_data["n"], a,lambda a: perms.append(a.copy()))
-    assert len(perms) == math.factorial(input_data["n"])
-    non_repeated = set()
-    for instance in perms:
-        non_repeated.add(tuple(instance))
-    assert len(non_repeated) == len(perms)
-
-
+    res = utils.lehmerPermutation(k=input_data["k"],original_array=a)
+    assert res == expected_out
+    
 TEST_CASES = [
-        {"size":10, "instances":10}
+        {"size":10, "instances":100}
         ]
+
 @pytest.mark.parametrize("input_data", TEST_CASES)
-def test_ilustrativeDiversification(input_data):
-    generator = subrutines.TSPHeapDiversification(problem_size=input_data["size"], 
+def test_lehmerDiversificator(input_data):
+    generator = subrutines.TSPLehmerDiversificator(problem_size=input_data["size"], 
                                                   number_of_problem_instances=input_data["instances"])
     out = generator.diversificate()
     assert len(out) == input_data["instances"] 
+    non_repeated = set()
     for instance in out:
+        non_repeated.add(tuple(instance))
         assert len(instance) == input_data["size"]
-    
+    assert len(non_repeated) == len(out)
 

@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from typing import List
 import random
 from ScatterSearchTSP import utils
-from ScatterSearchTSP.utils import heapPermutations
+import math
 
 class DiversificationGenerator(ABC):
     # def __init__(self) -> None:
@@ -13,22 +13,22 @@ class DiversificationGenerator(ABC):
 
 # No se implementarlo ahora mismo
 
-
-# Ni probar porque tiene O(n!) al menos
-class TSPHeapDiversification(DiversificationGenerator):
+# O(n² * I)
+class TSPLehmerDiversificator(DiversificationGenerator):
     def __init__(self, problem_size, number_of_problem_instances) -> None:
         self.n = problem_size
         self.instances = number_of_problem_instances
         super().__init__()
     def diversificate(self) -> List[List[int]]:
         output_list = list()
-        perms = list()
-        utils.heapPermutations(k=self.n, array=list(range(self.n)), output=lambda a: perms.append(a.copy()))
-        needed_distance = len(perms) // self.instances 
+        n_perms = math.factorial(self.n)
+        distance = n_perms // self.instances 
+        original_array = list(range(self.n))
         i = 0
-        while i < len(perms) and len(output_list) < self.instances:
-            output_list.append(perms[i])
-            i += needed_distance
+        while i < n_perms and len(output_list) < self.instances:
+            instance = utils.lehmerPermutation(i, original_array)
+            output_list.append(instance)
+            i += distance
         return output_list
 
         
