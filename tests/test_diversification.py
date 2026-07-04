@@ -1,14 +1,13 @@
-from ScatterSearchTSP import subrutines
+from ScatterSearchTSP import diversification
 from ScatterSearchTSP import utils
 import pytest
-import math
 
 TEST_CASES = [
         {"size":10, "instances":5}
         ]
 @pytest.mark.parametrize("input_fun", TEST_CASES)
 def test_randomDiversification(input_fun):
-    generator = subrutines.TSPRandomDiversification(problem_size=input_fun["size"], 
+    generator = diversification.TSPRandomDiversification(problem_size=input_fun["size"], 
                                                     number_of_problem_instances=input_fun["instances"])
     out = generator.diversificate()
     assert len(out) == input_fun["instances"] 
@@ -23,7 +22,7 @@ TEST_CASES = [
         ]
 @pytest.mark.parametrize("input_data, expected_out", TEST_CASES)
 def test_ilustrativeSubPerm(input_data, expected_out):
-    generator = subrutines.IlustrativeTSPDiversification(problem_size=input_data["n"])
+    generator = diversification.IlustrativeTSPDiversification(problem_size=input_data["n"])
     res = generator._sub_permutation(h=input_data["h"],s=input_data["s"])
     assert res == expected_out
 
@@ -32,7 +31,7 @@ TEST_CASES = [
         ]
 @pytest.mark.parametrize("input_data", TEST_CASES)
 def test_ilustrativeDiversification(input_data):
-    generator = subrutines.IlustrativeTSPDiversification(problem_size=input_data["size"])
+    generator = diversification.IlustrativeTSPDiversification(problem_size=input_data["size"])
     out = generator.diversificate()
     assert len(out) == input_data["instances"] 
     for instance in out:
@@ -46,7 +45,7 @@ TEST_CASES = [
 @pytest.mark.parametrize("input_data, expected_out", TEST_CASES)
 def test_lehmerPermutation(input_data, expected_out):
     a = list(range(input_data["n"]))
-    res = utils.lehmerPermutation(k=input_data["k"],original_array=a)
+    res = utils.lehmer_Permutation(k=input_data["k"],original_array=a)
     assert res == expected_out
     
 TEST_CASES = [
@@ -55,7 +54,7 @@ TEST_CASES = [
 
 @pytest.mark.parametrize("input_data", TEST_CASES)
 def test_lehmerDiversificator(input_data):
-    generator = subrutines.TSPLehmerDiversificator(problem_size=input_data["size"], 
+    generator = diversification.TSPLehmerDiversificator(problem_size=input_data["size"], 
                                                   number_of_problem_instances=input_data["instances"])
     out = generator.diversificate()
     assert len(out) == input_data["instances"] 
