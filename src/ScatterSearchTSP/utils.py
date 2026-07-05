@@ -1,5 +1,5 @@
 import math
-from typing import Any, Callable, Set, List
+from typing import Any, Callable, Collection
 import warnings
 from ScatterSearchTSP.tsp_types import Tour
 from tsplib95.models import Problem
@@ -17,7 +17,7 @@ def lehmer_Permutation(k:int, original_array:list) -> list:
     return result
 
 #assumes positive distances
-def min_set_distance(element, distanceSet:Set, distance_fn:Callable[[Any, Any], int]) -> int:
+def min_set_distance(element, distanceSet:Collection, distance_fn:Callable[[Any, Any], int]) -> int:
     assert len(distanceSet) > 0, "distance set is empty"
     min_distance = None
     for s in distanceSet:
@@ -42,12 +42,16 @@ def permutation_difference(tour1:Tour, tour2:Tour) -> int:
         warnings.warn(message="permutation difference == 0, comparing same permutation")
 
     return distance
-def trace_tour(problem:Problem, tour:Tour) -> int:
-    tour_list = list(tour)
-    for i in range(len(tour)):
-        tour_list[i] += 1
 
-    return problem.trace_tours([tuple(tour_list)])[0]
+# change permutation 0 notation (0,1,2,3) to 1 notation (1,2,3,4) so that tsplib95 problem.trace_tours does not break
+def trace_tours(problem:Problem, tours:Collection[Tour]) -> int:
+    in_tours = list()
+    for t in tours:
+        tour_list = list(t)
+        for i in range(len(t)):
+            tour_list[i] += 1
+        in_tours.append(tour_list)
+    return problem.trace_tours(in_tours)
 
 
 

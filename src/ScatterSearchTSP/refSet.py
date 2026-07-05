@@ -1,25 +1,19 @@
-import tsplib95 as tsplib
-from importlib import resources
 from abc import ABC, abstractmethod
-from typing import Callable, List, Set, NamedTuple
+from typing import Callable, List, Set, NamedTuple, List 
 import ScatterSearchTSP.utils as utils
-from ScatterSearchTSP.tsp_types import Tour
+from ScatterSearchTSP.tsp_types import Tour, FitTour
+import itertools
 
-# tsp_path = resources.files("tsp_instances").joinpath("berlin52.tsp")
 
-# problem = tsplib.load_problem(tsp_path)
-# print(problem)
-# print(problem.trace_tours([tuple(range(52))]))
-# print(problem.trace_canonical_tour())
 
 
 class RefSetTSP(ABC):
     @abstractmethod
-    def update(self, tour:Tour) -> bool:
+    def update(self, tours:List[FitTour]) -> bool:
         pass
 
     @abstractmethod
-    def set(self, tours: Set[Tour]) -> int:
+    def set(self, tours: List[FitTour]) -> int:
         pass
     @property
     @abstractmethod
@@ -30,72 +24,66 @@ class RefSetTSP(ABC):
     def b_set(self) -> Set[Tour]:
         pass
 
-class BTour(NamedTuple):
-    cost: int
-    tour: Tour
-
 class DTour(NamedTuple):
     diversity: int
+    fitness: int
     tour: Tour
 
 class RefSetFixedDiversity(RefSetTSP):
-    def __init__(self, fitness_fn: Callable[[Tour], int], 
-                 distance_fn:Callable[[Tour, Tour], int], d_size, b_size) -> None:
+    def __init__(self, distance_fn:Callable[[Tour, Tour], int], d_size, b_size) -> None:
 
         self.d_size = d_size
         self.b_size = b_size
-        self._b:List[BTour] = list()
-        self._d:List[DTour] = list()
-        self.fitness_fn = fitness_fn
+        # first b_size position for best solutions and last d_size positions for diversity solutions
+        self._refList:List[FitTour] = list() 
         self.distance_fn = distance_fn
 
-    def set(self, tours: Set[Tour]) -> int:
-        cost_tours: List[BTour] = list()
-        for b in tours:
-            cost = self.fitness_fn(b)
-            cost_tours.append(BTour(cost, b))
-        cost_tours.sort(key=lambda x: x.cost)
-        self._b = cost_tours[0: self.b_size]
+    def set(self, tours: List[FitTour]) -> int:
+        tours.sort(key=lambda x: x.fitness)
+        self._refList = tours[0: self.b_size]
+        d_candidates = tours[self.b_size:]
+        for _ in range(self.d_size):
+            max_min_d = None
+            max_min_idx = None
+            for j in range(len(d_candidates)):
+                curr_d = utils.min_set_distance(d_candidates[j],self._refList, lambda x,y: self.distance_fn(x.tour, y.tour))
+                if max_min_d is None or max_min_d < curr_d:
+                    max_min_d = curr_d
+                    max_min_idx = j
+            assert max_min_d is not None and max_min_idx is not None
+            new_tour = d_candidates[max_min_idx]
+            self._refList.append(new_tour)
+            del d_candidates[max_min_idx]
+        return len(self._refList)
 
-        d_candidates = set(tours)
-        b_tours = set()
-        
-        for b in self._b:
-            b_tours.add(b.tour)
+    def update(self, tours:List[FitTour]) -> bool:
 
-        d_candidates = d_candidates - b_tours
-        distance_tours:List[DTour] = list()
-        for t in d_candidates:
-            distance = utils.min_set_distance(t,b_tours, self.distance_fn)
-            distance_tours.append(DTour(distance, t))
-        distance_tours.sort(key=lambda x: x.diversity)
-        self._d = distance_tours[0:self.d_size]
-        return len(self._d) + len(self._b)
+        assert self._refList is not None 
+        assert len(self._refList) > 0
+        new_tours = list()
+        for t in tours:
+            if t not in self._refList:
+                new_tours.append(t)
 
-    def update(self, tour:Tour) -> bool:
-        cost = self.fitness_fn(tour)
-
-        if cost > self._b[-1].cost:
-            return False
-
-        i = self.b_size - 1
-        while cost < self._b[i].cost and i >= 0:
-            i -= 1
-        self._b.insert(i+1, BTour(cost, tour))
-        self._b.pop()
-        return True
+        combined_tours = new_tours + self._refList[0:self.b_size]
+        combined_tours.sort(key=lambda x: x.fitness)
+        p_lowest_tour = self._refList[self.b_size-1]
+        #update b set
+        self._refList[0:self.b_size] = combined_tours[0:self.b_size]
+        c_lowest_tour = self._refList[self.b_size-1]
+        return p_lowest_tour != c_lowest_tour
 
     @property
     def d_set(self) -> Set[Tour]:
         d_set = set()
-        for d in self._d:
+        for d in self._refList[self.b_size:]:
             d_set.add(d.tour)
         return d_set
 
     @property
     def b_set(self) -> Set[Tour]:
         b_set = set()
-        for b in self._b:
+        for b in self._refList[0:self.b_size]:
             b_set.add(b.tour)
         return b_set
 
