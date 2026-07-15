@@ -1,8 +1,6 @@
 from abc import ABC, abstractmethod
 import warnings
 from ScatterSearchTSP.tsp_types import Tour, TSP
-import heapq
-from sortedcontainers import SortedList
 
 class ImproveMethod(ABC):
     @abstractmethod 
@@ -17,16 +15,6 @@ class LKImprove():
         return solution
 
 
-
-#sweep_line_intersection implementation from  https://dmj.one/edu/su/course/csu083/theory/sweep-line-algorithm
-class Event:
-    def __init__(self, x, segment, is_start):
-        self.x = x
-        self.segment = segment
-        self.is_start = is_start
-    
-    def __lt__(self, other):
-        return self.x < other.x  # Sorting events by x-coordinate
 
 def do_intersect(seg1, seg2):
     """ Check if two line segments intersect using orientation test. """
@@ -48,34 +36,13 @@ def do_intersect(seg1, seg2):
 
     return o1 != o2 and o3 != o4
 
-def sweep_line_intersection(segments):
-    """ Detect intersections using Sweep Line Algorithm. """
-    events = []
-    for seg in segments:
-        events.append(Event(seg[0][0], seg, True))  # Start event
-        events.append(Event(seg[1][0], seg, False)) # End event
-    events.sort()  # Sorting events by x-coordinate
-    active_segments = SortedList(key=lambda seg: seg[0][1])  # Sort by y-coordinate
-    intersections = []
-    edges_idx = []
-
-    for event in events:
-        seg = event.segment
-        if event.is_start:
-            idx = active_segments.bisect(seg)
-            if idx > 0 and do_intersect(active_segments[idx - 1], seg):
-                intersections.append((active_segments[idx - 1], seg))
-            if idx < len(active_segments) and do_intersect(active_segments[idx], seg):
-                intersections.append((active_segments[idx], seg))
-            active_segments.add(seg)
-        else:
-            idx = active_segments.index(seg)
-            if 0 < idx < len(active_segments) - 1 and do_intersect(active_segments[idx - 1], active_segments[idx + 1]):
-                intersections.append((active_segments[idx - 1], active_segments[idx + 1]))
-                edges_idx.append((idx - 1, idx + 1))
-            active_segments.remove(seg)
-
-    return intersections 
+# O(n^2) with early exit
+def find_first_intersection(segments):
+    for i in range(len(segments)):
+        for j in range(len(segments)):
+            if do_intersect(segments[i], segments[j]):
+                return(segments[i], segments[j])
+    return None
 
 # this improve method is only valid if the distance has triange inequality property i.e. Euclidean-Distance like
 class CrossEliminate(ImproveMethod):
@@ -109,11 +76,10 @@ class CrossEliminate(ImproveMethod):
                 seg_edges.append(seg)
                 edge_pos[seg] = i
 
-            intersections = sweep_line_intersection(seg_edges)
+            inter = find_first_intersection(seg_edges)
             # print(f"intersections: {intersections}")
             # print(f"positions: {edge_pos}")
-            if len(intersections) > 0:
-                inter = intersections[0]
+            if inter:
                 idx_a = edge_pos[inter[0]]
                 idx_b = edge_pos[inter[1]]
                 i = min(idx_a, idx_b)

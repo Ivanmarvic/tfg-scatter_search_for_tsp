@@ -40,15 +40,24 @@ TEST_CASES = [
             ((3, 3), (7, 7)),
             ((1, 1), (2, 3)),
         ],
-        "expected_intersections":[(((1, 1), (5, 5)), ((2, 5), (6, 1))), (((2, 5), (6, 1)), ((3, 3), (7, 7)))],
-        "expected_indices":[(0,1),(1,2)],
+        "expected_intersections":(((1, 1), (5, 5)), ((2, 5), (6, 1))),
         },
+
+        {
+            "segments": [
+                ((1, 5), (5, 4)),
+                ((2, 3), (6, 2)),
+                ((3, 1), (4, 6)),
+                ],
+            "expected_intersections":(((1, 5), (5, 4)), ((3, 1), (4, 6))),
+            }
+
 
         ]
 @pytest.mark.parametrize("test_case", TEST_CASES)
-def test_sweepLine(test_case):
-    intersections = improveMethod.sweep_line_intersection(test_case["segments"])
-    print(intersections)
+def test_find_first_intersection(test_case):
+    intersections = improveMethod.find_first_intersection(test_case["segments"])
+    print(f"intersections: {intersections}")
     assert intersections == test_case["expected_intersections"]
 
 
