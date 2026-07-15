@@ -45,7 +45,7 @@ TEST_CASES = [
 @pytest.mark.parametrize("input_data, expected_out", TEST_CASES)
 def test_lehmerPermutation(input_data, expected_out):
     a = list(range(input_data["n"]))
-    res = utils.lehmer_Permutation(k=input_data["k"],original_array=a)
+    res = diversification.lehmer_Permutation(k=input_data["k"],original_array=a)
     assert res == expected_out
     
 TEST_CASES = [

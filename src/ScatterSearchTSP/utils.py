@@ -5,16 +5,16 @@ from ScatterSearchTSP.tsp_types import Tour
 from tsplib95.models import Problem
 
 # devuelve la permutación k del array original O(n²)
-def lehmer_Permutation(k:int, original_array:list) -> list:
-    array_copy = original_array.copy()
-    result = list()
-    for i in range(len(array_copy),  0, -1):
-        fact = math.factorial(i - 1)
-        p = k // fact
-        result.append(array_copy.pop(p))
-        k = k % fact
+# def lehmer_Permutation(k:int, original_array:list) -> list:
+#     array_copy = original_array.copy()
+#     result = list()
+#     for i in range(len(array_copy),  0, -1):
+#         fact = math.factorial(i - 1)
+#         p = k // fact
+#         result.append(array_copy.pop(p))
+#         k = k % fact
         
-    return result
+#     return result
 
 #assumes positive distances
 def min_set_distance(element, distanceSet:Collection, distance_fn:Callable[[Any, Any], int]) -> int:
@@ -52,6 +52,8 @@ def trace_tours(problem:Problem, tours:Collection[Tour]) -> int:
             tour_list[i] += 1
         in_tours.append(tour_list)
     return problem.trace_tours(in_tours)
+
+
 
 
 

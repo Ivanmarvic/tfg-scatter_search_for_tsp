@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
-from ScatterSearchTSP.tsp_types import Tour
+import warnings
+from ScatterSearchTSP.tsp_types import Tour, TSP
 import heapq
 from sortedcontainers import SortedList
 
@@ -77,11 +78,18 @@ def sweep_line_intersection(segments):
     return intersections 
 
 # this improve method is only valid if the distance has triange inequality property i.e. Euclidean-Distance like
-class CrossEliminate():
-    def __init__(self, problem) -> None:
+class CrossEliminate(ImproveMethod):
+    def __init__(self, problem:TSP) -> None:
+        if(problem.edge_weight_type != "EUC_2D"):
+            warnings.warn(message=f"CrossEliminate does not support {problem.edge_weight_type}", category=UserWarning)
         self.problem = problem
 
     def improve(self, solution:Tour) -> Tour:
+
+        if(self.problem.edge_weight_type != "EUC_2D"):
+            warnings.warn(message=f"CrossEliminate does not support {self.problem.edge_weight_type}, aborting improve", category=UserWarning)
+            return solution
+
         new_sol = list(solution)
         improved = True
         while improved:
@@ -93,8 +101,8 @@ class CrossEliminate():
                     next = new_sol[i+1]
                 else:
                     next = new_sol[0]
-                p1 = self.problem.node_coords[curr]
-                p2 = self.problem.node_coords[next]
+                p1 = self.problem.node_coords[curr+1]
+                p2 = self.problem.node_coords[next+1]
                 if p1 > p2 : 
                     p1, p2 = p2, p1
                 seg = (tuple(p1), tuple(p2))

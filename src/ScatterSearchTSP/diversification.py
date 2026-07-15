@@ -14,12 +14,25 @@ class DiversificationGenerator(ABC):
 
 # No se implementarlo ahora mismo
 
+# devuelve la permutación k del array original O(n²)
+def lehmer_Permutation(k:int, original_array:list) -> list:
+    array_copy = original_array.copy()
+    result = list()
+    for i in range(len(array_copy),  0, -1):
+        fact = math.factorial(i - 1)
+        p = k // fact
+        result.append(array_copy.pop(p))
+        k = k % fact
+
+    return result
+
 # O(n² * I)
 class TSPLehmerDiversificator(DiversificationGenerator):
     def __init__(self, problem_size, number_of_problem_instances) -> None:
         self.n = problem_size
         self.instances = number_of_problem_instances
         super().__init__()
+
     def diversificate(self) -> Set[Tour]:
         output_list = list()
         n_perms = math.factorial(self.n)
@@ -27,7 +40,7 @@ class TSPLehmerDiversificator(DiversificationGenerator):
         original_array = list(range(self.n))
         i = 0
         while i < n_perms and len(output_list) < self.instances:
-            instance = utils.lehmer_Permutation(i, original_array)
+            instance = lehmer_Permutation(i, original_array)
             output_list.append(tuple(instance))
             i += distance
         return set(output_list)
