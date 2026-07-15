@@ -16,7 +16,7 @@ class TSP():
         self.edge_weight_type = tsplib95_problem.edge_weight_type
         # we work with 0 index in the future we will have to adapt to the convention 1-index
         for i, coords in tsplib95_problem.node_coords.items():
-            self.node_coords[i] = tuple(coords)
+            self.node_coords[i-1] = tuple(coords)
     def trace_tours(self, tours:Collection[Tour]):
         in_tours = list()
         for t in tours:

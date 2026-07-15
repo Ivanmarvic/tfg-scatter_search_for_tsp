@@ -101,8 +101,8 @@ class CrossEliminate(ImproveMethod):
                     next = new_sol[i+1]
                 else:
                     next = new_sol[0]
-                p1 = self.problem.node_coords[curr+1]
-                p2 = self.problem.node_coords[next+1]
+                p1 = self.problem.node_coords[curr]
+                p2 = self.problem.node_coords[next]
                 if p1 > p2 : 
                     p1, p2 = p2, p1
                 seg = (tuple(p1), tuple(p2))
