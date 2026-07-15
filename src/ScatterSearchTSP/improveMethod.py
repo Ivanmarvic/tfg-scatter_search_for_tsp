@@ -105,7 +105,7 @@ class CrossEliminate(ImproveMethod):
                 p2 = self.problem.node_coords[next]
                 if p1 > p2 : 
                     p1, p2 = p2, p1
-                seg = (tuple(p1), tuple(p2))
+                seg = (p1, p2)
                 seg_edges.append(seg)
                 edge_pos[seg] = i
 
