@@ -7,9 +7,9 @@ import pathlib
 BASE_DIR = pathlib.Path(__file__).parent.parent
 def test_LKImprove():
     ppath = BASE_DIR / "src" / "ScatterSearchTSP" / "tsp_instances" /  "berlin52.tsp"
-    problem = tsplib.load(ppath)
+    problem = TSP.load(str(ppath))
     improver = improveMethod.LKImprove(problem)
-    initial_sol = tuple(range(int(problem.dimension)))
+    initial_sol = tuple(range(problem.dimension))
     sol = improver.improve(initial_sol)
     assert sol != initial_sol
 

@@ -1,6 +1,9 @@
 from abc import ABC, abstractmethod
 import warnings
 from ScatterSearchTSP.tsp_types import Tour, TSP
+from pyCombinatorial.utils import util as py_util
+from pyCombinatorial.algorithm import lin_kernighan_helsgaun
+import numpy as np
 
 class ImproveMethod(ABC):
     @abstractmethod 
@@ -8,11 +11,40 @@ class ImproveMethod(ABC):
         pass
 
 class LKImprove():
-    def __init__(self, problem) -> None:
+    def __init__(self, problem:TSP) -> None:
         self.problem = problem
 
     def improve(self, solution:Tour) -> Tour:
-        return solution
+        coordinates = [self.problem.node_coords[i] for i in range(self.problem.dimension)]
+        coordinates = np.array(coordinates, dtype=float)
+        distance_matrix = py_util.build_distance_matrix(coordinates)
+        solution_base_1 = [node + 1 for node in solution] 
+        city_tour = [solution_base_1, self.problem.trace_tours([solution])[0]]
+        print(city_tour)
+        parameters = {
+               'city_tour': city_tour,
+               'initial_location': -1,
+               'candidate_size': 20,
+               'alpha_candidates': True,
+               'ascent_iterations': 100,
+               'max_depth': 5,
+               'breadth':5,
+               'patching': True,
+               'patching_trials': 20,
+               'restarts': 2,
+               'kicks': 1,
+               'three_opt': True,
+               'three_opt_trials': 50,
+               'max_passes': 50,
+               'elite_candidates': True,
+               'seed': None,
+               'use_dont_look_bits': True,
+               'verbose': True,
+             }
+        route, _ = lin_kernighan_helsgaun(distance_matrix, **parameters)
+        route_base_0 = (node + 1 for node in route)
+        return route_base_0
+
 
 
 
