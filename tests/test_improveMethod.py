@@ -12,6 +12,11 @@ def test_LKImprove():
     initial_sol = tuple(range(problem.dimension))
     sol = improver.improve(initial_sol)
     assert sol != initial_sol
+    costs = problem.trace_tours([initial_sol, sol])
+    assert costs[1] < costs[0]
+    assert len(sol) == len(initial_sol)
+    for i in initial_sol:
+        assert i in sol
 
 TEST_CASES = [
         "berlin52.tsp"

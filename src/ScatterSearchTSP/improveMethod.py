@@ -13,11 +13,11 @@ class ImproveMethod(ABC):
 class LKImprove():
     def __init__(self, problem:TSP) -> None:
         self.problem = problem
-
-    def improve(self, solution:Tour) -> Tour:
         coordinates = [self.problem.node_coords[i] for i in range(self.problem.dimension)]
         coordinates = np.array(coordinates, dtype=float)
-        distance_matrix = py_util.build_distance_matrix(coordinates)
+        self._distance_matrix = py_util.build_distance_matrix(coordinates)
+
+    def improve(self, solution:Tour) -> Tour:
         solution_base_1 = [node + 1 for node in solution] 
         city_tour = [solution_base_1, self.problem.trace_tours([solution])[0]]
         print(city_tour)
@@ -41,9 +41,9 @@ class LKImprove():
                'use_dont_look_bits': True,
                'verbose': True,
              }
-        route, _ = lin_kernighan_helsgaun(distance_matrix, **parameters)
-        route_base_0 = (node + 1 for node in route)
-        return route_base_0
+        route, _ = lin_kernighan_helsgaun(self._distance_matrix, **parameters)
+        route_base_0 = [int(node) - 1 for node in route]
+        return tuple(route_base_0[:self.problem.dimension])
 
 
 
