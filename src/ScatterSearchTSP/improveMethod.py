@@ -20,7 +20,6 @@ class LKImprove():
     def improve(self, solution:Tour) -> Tour:
         solution_base_1 = [node + 1 for node in solution] 
         city_tour = [solution_base_1, self.problem.trace_tours([solution])[0]]
-        print(city_tour)
         parameters = {
                'city_tour': city_tour,
                'initial_location': -1,
@@ -86,8 +85,8 @@ class CrossEliminate(ImproveMethod):
     def improve(self, solution:Tour) -> Tour:
 
         if(self.problem.edge_weight_type != "EUC_2D"):
-            warnings.warn(message=f"CrossEliminate does not support {self.problem.edge_weight_type}, aborting improve", category=UserWarning)
-            return solution
+            warnings.warn(message=f"CrossEliminate does not support {self.problem.edge_weight_type} unexpected behavior may happen ", category=UserWarning)
+            # return solution
 
         new_sol = list(solution)
         improved = True
@@ -109,14 +108,11 @@ class CrossEliminate(ImproveMethod):
                 edge_pos[seg] = i
 
             inter = find_first_intersection(seg_edges)
-            # print(f"intersections: {intersections}")
-            # print(f"positions: {edge_pos}")
             if inter:
                 idx_a = edge_pos[inter[0]]
                 idx_b = edge_pos[inter[1]]
                 i = min(idx_a, idx_b)
                 j = max(idx_a, idx_b)
-                print(f" i: {i} j: {j}")
                 new_sol[i+1], new_sol[j] = new_sol[j], new_sol[i+1]
                 assert i + 2 <= j
                 new_sol[i+2:j] = list(reversed(new_sol[i+2:j]))

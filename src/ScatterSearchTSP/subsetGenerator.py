@@ -5,9 +5,9 @@ import itertools
 
 class subsetGenerator(ABC):
     @abstractmethod 
-    def generateSubsets(b,d) -> Collection[Tour]:
+    def generateSubsets(self, b:Collection[Tour],d:Collection[Tour]) -> Collection[Collection[Tour]]:
         pass
-class SimpleSubsetGenerator():
+class SimpleSubsetGenerator(subsetGenerator):
     def __init__(self) -> None:
         pass
     def generateSubsets(self, b:Collection[Tour],d:Collection[Tour]) -> Collection[Collection[Tour]]:

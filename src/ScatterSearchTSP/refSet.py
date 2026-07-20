@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
-from typing import Callable, List, Set, NamedTuple, List 
+from typing import Callable, List, Set, NamedTuple, List
+import warnings 
 import ScatterSearchTSP.utils as utils
 from ScatterSearchTSP.tsp_types import Tour, FitTour
 import itertools
@@ -23,6 +24,11 @@ class RefSetTSP(ABC):
     @abstractmethod
     def b_set(self) -> Set[Tour]:
         pass
+    @property
+    @abstractmethod 
+    def best_solution(self) -> FitTour:
+        pass
+
 
 class DTour(NamedTuple):
     diversity: int
@@ -39,6 +45,11 @@ class RefSetFixedDiversity(RefSetTSP):
         self.distance_fn = distance_fn
 
     def set(self, tours: List[FitTour]) -> int:
+        if len(tours) < self.d_size + self.b_size: 
+            warnings.warn(
+                    message=f"RefSet set method called with few solutions, either reduce refSet b_size and d_size or get more solutions from diversificator",
+                    category=UserWarning)
+
         tours.sort(key=lambda x: x.fitness)
         self._refList = tours[0: self.b_size]
         d_candidates = tours[self.b_size:]
@@ -50,6 +61,7 @@ class RefSetFixedDiversity(RefSetTSP):
                 if max_min_d is None or max_min_d < curr_d:
                     max_min_d = curr_d
                     max_min_idx = j
+
             assert max_min_d is not None and max_min_idx is not None
             new_tour = d_candidates[max_min_idx]
             self._refList.append(new_tour)
@@ -86,6 +98,10 @@ class RefSetFixedDiversity(RefSetTSP):
         for b in self._refList[0:self.b_size]:
             b_set.add(b.tour)
         return b_set
+    
+    @property
+    def best_solution(self) -> FitTour:
+        return self._refList[0]
 
             
 

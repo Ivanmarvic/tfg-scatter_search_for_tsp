@@ -1,0 +1,98 @@
+from ScatterSearchTSP import diversification, improveMethod, combinationMethod, refSet, subsetGenerator
+from importlib import resources
+from typing import NamedTuple
+import pathlib
+import time 
+
+from ScatterSearchTSP.tsp_types import TSP, FitTour 
+
+class SolverData(NamedTuple):
+    total_time_seconds: float
+    improve_time_seconds: float
+    scatter_loops: int 
+    improve_counter: int
+
+class ScatterSearcherTSP():
+    def __init__(self, diversificator: diversification.DiversificationGenerator, 
+                 improveMethod1: improveMethod.ImproveMethod, improveMethod2: improveMethod.ImproveMethod, refSet:refSet.RefSetTSP, 
+                 combinationMethod: combinationMethod.CombinationMethod, subsetGenerator: subsetGenerator.subsetGenerator ) -> None:
+        self.diversificator = diversificator 
+        self.improveMethod1 = improveMethod1 
+        self.improveMethod2 = improveMethod2 
+        self.refSet = refSet 
+        self.combinationMethod = combinationMethod 
+        self.subsetGenerator = subsetGenerator 
+
+    # def solve(self, tsp_file_path:str):
+    #     path = pathlib.Path(tsp_file_path)
+    #     if not path.is_file():
+    #         instances_dir = resources.files("src.tsp_instances")
+    #         path = instances_dir / tsp_file_path 
+    #         assert path.is_file(), f"path {tsp_file_path} is not a file aborting execution"
+
+    #     problem = TSP.load(str(path)) 
+    #     assert problem, "unexpected error in problem loading"
+    #     initial_solutions = self.diversificator.diversificate()
+    def solve(self, problem:TSP):
+        init_time = time.perf_counter()
+        improve_time = 0
+        improve_counter = 0
+        initial_solutions = self.diversificator.diversificate()
+        im_tours = set()
+        for sol in initial_solutions:
+            t0 = time.perf_counter()
+            im_sol = self.improveMethod1.improve(sol)
+            improve_counter += 1
+            t1 = time.perf_counter() 
+            improve_time += t1 - t0
+
+            im_tours.add(im_sol)
+
+        im_tours = list(im_tours)
+        tour_costs = problem.trace_tours(im_tours)
+        fit_tours = list() 
+
+        for i in range(len(im_tours)):
+            fit = FitTour(fitness=tour_costs[i], tour=im_tours[i])
+            fit_tours.append(fit)
+
+        nsol = self.refSet.set(fit_tours) 
+        print(f"working with {nsol} initial solutions")
+
+        updated = True 
+        loop_counter = 0
+        while updated:
+            subsets = self.subsetGenerator.generateSubsets(b= self.refSet.b_set, d=self.refSet.d_set) 
+            new_solutions = set()
+            for s in subsets:
+                solution = self.combinationMethod.combinate(list(s)) 
+                t0 = time.perf_counter()
+                solution = self.improveMethod2.improve(solution)
+                improve_counter += 1
+                t1 = time.perf_counter()
+                improve_time += t1 - t0
+                new_solutions.add(solution)
+
+            new_solutions = list(new_solutions)
+            costs = problem.trace_tours(new_solutions)
+            fit_tours = list()
+            for i in range(len(new_solutions)):
+                fit = FitTour(fitness=costs[i], tour=new_solutions[i])
+                fit_tours.append(fit)
+            updated = self.refSet.update(fit_tours)
+            if updated: 
+                loop_counter += 1
+
+        best = self.refSet.best_solution
+        total_time = time.perf_counter() - init_time
+        execution_data = SolverData(total_time, improve_time, loop_counter, improve_counter)
+        return best, execution_data
+        
+
+
+
+
+
+
+
+
