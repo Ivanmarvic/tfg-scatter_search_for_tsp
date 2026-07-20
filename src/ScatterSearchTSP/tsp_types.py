@@ -25,6 +25,9 @@ class TSP():
                 tour_list[i] += 1
             in_tours.append(tour_list)
         return self._tsp95problem.trace_tours(in_tours)
+    def get_weight(self, start, end):
+        self._tsp95problem.get_weight(start + 1, end + 1)
+
     @staticmethod
     def load(filepath:str ):
         print(filepath)
