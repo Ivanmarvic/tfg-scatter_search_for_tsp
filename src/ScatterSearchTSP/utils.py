@@ -1,20 +1,8 @@
-import math
 from typing import Any, Callable, Collection
 import warnings
 from ScatterSearchTSP.tsp_types import Tour
 from tsplib95.models import Problem
 
-# devuelve la permutación k del array original O(n²)
-# def lehmer_Permutation(k:int, original_array:list) -> list:
-#     array_copy = original_array.copy()
-#     result = list()
-#     for i in range(len(array_copy),  0, -1):
-#         fact = math.factorial(i - 1)
-#         p = k // fact
-#         result.append(array_copy.pop(p))
-#         k = k % fact
-        
-#     return result
 
 #assumes positive distances
 def min_set_distance(element, distanceSet:Collection, distance_fn:Callable[[Any, Any], int]) -> int:
@@ -42,6 +30,33 @@ def permutation_difference(tour1:Tour, tour2:Tour) -> int:
         warnings.warn(message="permutation difference == 0, comparing same permutation")
 
     return distance
+
+def edge_difference(tour1:Tour, tour2: Tour) -> int:
+    assert len(tour1) == len(tour2), "error trying to compute a distance between tours with different length"
+    edges_1 = set() 
+    edges_2 = set()
+    for i in range(len(tour1)):
+        start = tour1[i]
+        if i == len(tour1) - 1:
+            end = tour1[0]
+        else:
+            end = tour1[i + 1]
+        if start > end:
+            start, end = end, start
+        edges_1.add((start,end))
+    for i in range(len(tour2)):
+        start = tour2[i]
+        if i == len(tour2) - 1:
+            end = tour2[0]
+        else:
+            end = tour2[i + 1]
+        if start > end:
+            start, end = end, start
+        edges_2.add((start,end))
+
+    return abs(len(edges_1) - len(edges_2))
+
+
 
 # change permutation 0 notation (0,1,2,3) to 1 notation (1,2,3,4) so that tsplib95 problem.trace_tours does not break
 def trace_tours(problem:Problem, tours:Collection[Tour]) -> int:

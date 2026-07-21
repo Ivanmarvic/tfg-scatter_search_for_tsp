@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Callable, List, Set, NamedTuple, List
+from typing import Callable, List, Set, NamedTuple, List, Tuple
 import warnings 
 import ScatterSearchTSP.utils as utils
 from ScatterSearchTSP.tsp_types import Tour, FitTour
@@ -28,6 +28,10 @@ class RefSetTSP(ABC):
     @abstractmethod 
     def best_solution(self) -> FitTour:
         pass
+    @property
+    @abstractmethod 
+    def last_inserted_indices(self) -> List[int]:
+        pass
 
 
 class DTour(NamedTuple):
@@ -43,6 +47,7 @@ class RefSetFixedDiversity(RefSetTSP):
         # first b_size position for best solutions and last d_size positions for diversity solutions
         self._refList:List[FitTour] = list() 
         self.distance_fn = distance_fn
+        self._l_inserted = [] 
 
     def set(self, tours: List[FitTour]) -> int:
         if len(tours) < self.d_size + self.b_size: 
@@ -68,22 +73,32 @@ class RefSetFixedDiversity(RefSetTSP):
             del d_candidates[max_min_idx]
         return len(self._refList)
 
+    @property
+    def last_inserted_indices(self) -> List[int]:
+        return self._l_inserted
+
     def update(self, tours:List[FitTour]) -> bool:
 
         assert self._refList is not None 
         assert len(self._refList) > 0
+        b_size = self.b_size 
+        current_b = self._refList[:b_size]
+        ref_set = set(self._refList)
         new_tours = list()
         for t in tours:
-            if t not in self._refList:
+            if t not in ref_set:
                 new_tours.append(t)
 
-        combined_tours = new_tours + self._refList[0:self.b_size]
+        combined_tours = new_tours + current_b
         combined_tours.sort(key=lambda x: x.fitness)
-        p_lowest_tour = self._refList[self.b_size-1]
-        #update b set
-        self._refList[0:self.b_size] = combined_tours[0:self.b_size]
-        c_lowest_tour = self._refList[self.b_size-1]
-        return p_lowest_tour != c_lowest_tour
+        new_b = combined_tours[0:self.b_size]
+        ref_new_index:List[int] = []
+        for tour in new_b:
+            if tour in new_tours:
+                ref_new_index.append(new_b.index(tour)) 
+        self._l_inserted = ref_new_index 
+        self._refList[0:b_size] = new_b
+        return len(ref_new_index) > 0
 
     @property
     def d_set(self) -> Set[Tour]:

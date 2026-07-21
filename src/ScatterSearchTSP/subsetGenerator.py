@@ -9,10 +9,13 @@ class subsetGenerator(ABC):
         pass
 class SimpleSubsetGenerator(subsetGenerator):
     def __init__(self) -> None:
+        self._generated = set()
         pass
     def generateSubsets(self, b:Collection[Tour],d:Collection[Tour]) -> Collection[Collection[Tour]]:
         subsets = set()
         subsets = subsets.union(set(itertools.combinations(b,2)))
         subsets = subsets.union(set(itertools.combinations(d,2)))
         subsets = subsets.union(set(itertools.product(b,d)))
-        return subsets
+        new_sets = subsets - self._generated 
+        self._generated = self._generated.union(new_sets)
+        return new_sets

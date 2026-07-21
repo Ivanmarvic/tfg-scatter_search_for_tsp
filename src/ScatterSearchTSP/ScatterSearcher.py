@@ -1,6 +1,6 @@
 from ScatterSearchTSP import diversification, improveMethod, combinationMethod, refSet, subsetGenerator
 from importlib import resources
-from typing import NamedTuple
+from typing import Dict, NamedTuple
 import pathlib
 import time 
 
@@ -11,6 +11,7 @@ class SolverData(NamedTuple):
     improve_time_seconds: float
     scatter_loops: int 
     improve_counter: int
+    refSet_update_data: Dict
 
 class ScatterSearcherTSP():
     def __init__(self, diversificator: diversification.DiversificationGenerator, 
@@ -61,6 +62,7 @@ class ScatterSearcherTSP():
 
         updated = True 
         loop_counter = 0
+        refSet_history = dict()
         while updated:
             subsets = self.subsetGenerator.generateSubsets(b= self.refSet.b_set, d=self.refSet.d_set) 
             new_solutions = set()
@@ -82,8 +84,12 @@ class ScatterSearcherTSP():
             updated = self.refSet.update(fit_tours)
             if updated: 
                 loop_counter += 1
+                refSet_history[loop_counter] = self.refSet.last_inserted_indices
+                print(f" {len(refSet_history[loop_counter])} new candidates found by combination")
+                if 0 in self.refSet.last_inserted_indices:
+                    print("New best solution found by combination ...")
 
         best = self.refSet.best_solution
         total_time = time.perf_counter() - init_time
-        execution_data = SolverData(total_time, improve_time, loop_counter, improve_counter)
+        execution_data = SolverData(total_time, improve_time, loop_counter, improve_counter, refSet_history)
         return best, execution_data
