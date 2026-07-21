@@ -87,12 +87,3 @@ class ScatterSearcherTSP():
         total_time = time.perf_counter() - init_time
         execution_data = SolverData(total_time, improve_time, loop_counter, improve_counter)
         return best, execution_data
-        
-
-
-
-
-
-
-
-

@@ -16,6 +16,3 @@ class SimpleSubsetGenerator(subsetGenerator):
         subsets = subsets.union(set(itertools.combinations(d,2)))
         subsets = subsets.union(set(itertools.product(b,d)))
         return subsets
-
-        
-

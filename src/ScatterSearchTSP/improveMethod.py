@@ -10,7 +10,7 @@ class ImproveMethod(ABC):
     def improve(self, solution:Tour) -> Tour:
         pass
 
-class LKImprove():
+class LKImprove(ImproveMethod):
     def __init__(self, problem:TSP) -> None:
         self.problem = problem
         coordinates = [self.problem.node_coords[i] for i in range(self.problem.dimension)]

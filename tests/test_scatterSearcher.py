@@ -27,6 +27,3 @@ def test_scatterSearcher(problem_file, params):
     for sol in ref._refList:
         assert sol.fitness >= best.fitness
     assert False, "to get the stdout"
-
-
-
