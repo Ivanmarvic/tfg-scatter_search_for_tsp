@@ -35,7 +35,8 @@ class NaiveTSPCombination(CombinationMethod):
         return Tour(combined_solution)
 
 
-@dataclass(slots=True)
+# @dataclass(slots=True)
+@dataclass
 class EdgeScore():
     score: float 
     start: int 

@@ -52,7 +52,7 @@ class RefSetFixedDiversity(RefSetTSP):
     def set(self, tours: List[FitTour]) -> int:
         if len(tours) < self.d_size + self.b_size: 
             warnings.warn(
-                    message=f"RefSet set method called with few solutions, either reduce refSet b_size and d_size or get more solutions from diversificator",
+                    message=f"RefSet set method called with few solutions ({len(tours)}) cost {tours[0].fitness}, either reduce refSet b_size and d_size or get more solutions from diversificator",
                     category=UserWarning)
 
         tours.sort(key=lambda x: x.fitness)
@@ -98,7 +98,8 @@ class RefSetFixedDiversity(RefSetTSP):
                 ref_new_index.append(new_b.index(tour)) 
         self._l_inserted = ref_new_index 
         self._refList[0:b_size] = new_b
-        return len(ref_new_index) > 0
+        return current_b[-1].fitness > new_b[-1].fitness
+        # return len(ref_new_index) > 0
 
     @property
     def d_set(self) -> Set[Tour]:

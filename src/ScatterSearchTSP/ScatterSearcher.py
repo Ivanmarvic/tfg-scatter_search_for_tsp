@@ -55,6 +55,13 @@ class ScatterSearcherTSP():
         nsol = self.refSet.set(fit_tours) 
         print(f"working with {nsol} initial solutions")
         print(f"best solution from diversification {self.refSet.best_solution.fitness}")
+        costs = problem.trace_tours(self.refSet.b_set)
+        for c in costs:
+            print("coste: " , c)
+        print("DIVERSIFICATION")
+        costs = problem.trace_tours(self.refSet.d_set)
+        for c in costs:
+            print("coste: " , c)
         diver_improve_time = time.perf_counter() - init_time
         best_cost_diver = self.refSet.best_solution.fitness
 

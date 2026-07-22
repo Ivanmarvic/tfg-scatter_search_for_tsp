@@ -13,7 +13,7 @@ def run_scatter_benchmarks(
     problem_name: str, 
     opt_cost: float, 
     params: Dict[str, Any],
-    n_runs:int = 5 
+    n_runs:int = 1 
 ) -> pd.DataFrame:
     rows = []
     for ss in searchers:
@@ -82,12 +82,13 @@ def benchmark_improve_method(problem_name, solution_name, params):
     opt_cost = tsplib_problem.trace_tours(opt_sol.tours)[0]
 
     im_cross = improveMethod.CrossEliminate(problem) 
-    im_lkh = improveMethod.LKImprove(problem)
-    ss1 = create_base_searcher(im_cross, im_cross)
+    im_lkh = improveMethod.LKHImprove(problem)
+    # ss1 = create_base_searcher(im_cross, im_cross)
     ss2 = create_base_searcher(im_lkh, im_lkh)
-    ss3 = create_base_searcher(im_cross, im_lkh)
-    ss4 = create_base_searcher(im_lkh, im_cross)
-    df = run_scatter_benchmarks([ss1, ss2, ss3, ss4], problem, problem_name, opt_cost, params)
+    # ss3 = create_base_searcher(im_cross, im_lkh)
+    # ss4 = create_base_searcher(im_lkh, im_cross)
+    # df = run_scatter_benchmarks([ss1, ss2, ss3, ss4], problem, problem_name, opt_cost, params)
+    df = run_scatter_benchmarks([ss2], problem, problem_name, opt_cost, params)
     return df 
 def benchmark_combination_method(problem_name, solution_name, params):
     def create_base_searcher(im1, im2, com):
@@ -107,7 +108,7 @@ def benchmark_combination_method(problem_name, solution_name, params):
     opt_cost = tsplib_problem.trace_tours(opt_sol.tours)[0]
 
     im_cross = improveMethod.CrossEliminate(problem) 
-    im_lkh = improveMethod.LKImprove(problem)
+    im_lkh = improveMethod.LKHImprove(problem)
     com_naive = combinationMethod.NaiveTSPCombination()
     com_convex = combinationMethod.ConvexTSPCombination(problem)
     ss1 = create_base_searcher(im_cross, im_cross, com_naive)
@@ -140,7 +141,7 @@ def benchmark_refSetSizes(problem_name, solution_name, sizes, params):
         in_params["d_size"] = s[1]
         in_params["diver_size"] = params["diver_size"]
         im_cross = improveMethod.CrossEliminate(problem) 
-        im_lkh = improveMethod.LKImprove(problem)
+        im_lkh = improveMethod.LKHImprove(problem)
         ss1 = create_base_searcher(im_cross, im_cross, in_params)
         ss2 = create_base_searcher(im_cross, im_lkh, in_params)
         searchers.append(ss1)
@@ -178,23 +179,24 @@ def benchmark_diversification(problem_name, solution_name, params):
     df = run_scatter_benchmarks([ss1, ss2, ss3], problem, problem_name, opt_cost, params)
     return df 
 
-PROBLEM_FILES = [ ("berlin52.tsp", "berlin52.opt.tour"), ("a280.tsp", "a280.opt.tour"), ("gr96.tsp", "gr96.opt.tour")]
+# PROBLEM_FILES = [ ("berlin52.tsp", "berlin52.opt.tour"), ("a280.tsp", "a280.opt.tour"), ("gr96.tsp", "gr96.opt.tour")]
+PROBLEM_FILES = [ ("a280.tsp", "a280.opt.tour")]
 
 results = []
 for problem_name, best_tour in PROBLEM_FILES:
     params = {"diver_size": 50, "b_size": 5, "d_size": 5}
     results1 = benchmark_improve_method(problem_name, best_tour, params)
     results.append(results1)
-    results2 = benchmark_combination_method(problem_name, best_tour, params)
-    results.append(results2)
-    results3 = benchmark_refSetSizes(problem_name, best_tour, [(5,5),(10,10), (15,15)], params)
-    results.append(results3)
-    results4 = benchmark_diversification(problem_name, best_tour, params)
-    results.append(results4)
+    # results2 = benchmark_combination_method(problem_name, best_tour, params)
+    # results.append(results2)
+    # results3 = benchmark_refSetSizes(problem_name, best_tour, [(5,5),(10,10), (15,15)], params)
+    # results.append(results3)
+    # results4 = benchmark_diversification(problem_name, best_tour, params)
+    # results.append(results4)
 
 df = pd.DataFrame(results[0])
 for i in range(1, len(results)):
-    pd.concat([df, results[i]], ignore_index=True)
+    df = pd.concat([df, results[i]], ignore_index=True)
 df.to_csv( BASE_DIR / "benchmarks" / "results" / "results_global.csv")
 
 

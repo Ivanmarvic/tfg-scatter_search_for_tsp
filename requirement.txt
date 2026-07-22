@@ -1,0 +1,36 @@
+branca==0.8.2
+certifi==2026.6.17
+charset-normalizer==3.4.9
+click==6.7
+Deprecated==1.2.18
+folium==0.20.0
+idna==3.18
+importlib==1.0.4
+iniconfig==2.3.0
+isect_segments-bentley_ottmann @ git+https://github.com/ideasman42/isect_segments-bentley_ottmann@7cfc7936cea1fcd8a63f36cbfb77aafc20fb8dc6
+Jinja2==3.1.6
+lkh==2.0.0
+llvmlite==0.48.0
+MarkupSafe==3.0.3
+narwhals==2.24.0
+networkx==2.8.8
+numba==0.66.0
+numpy==2.4.6
+packaging==26.2
+pandas==3.0.3
+plotly==6.9.0
+pluggy==1.6.0
+pycombinatorial==2.2.7
+Pygments==2.20.0
+pytest==9.1.1
+python-dateutil==2.9.0.post0
+requests==2.34.2
+-e git+ssh://git@github.com/Ivanmarvic/tfg-scatter_search_for_tsp.git@16a17b5982c98cc311bb0c2061fb10169ba8f5e0#egg=ScatterSearchTSP
+scipy==1.18.0
+six==1.17.0
+sortedcontainers==2.4.0
+tabulate==0.8.10
+tsplib95==0.7.1
+urllib3==2.7.0
+wrapt==1.17.3
+xyzservices==2026.3.0

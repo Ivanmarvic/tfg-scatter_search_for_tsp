@@ -1,5 +1,4 @@
 import pytest
-import tsplib95 as tsplib
 from ScatterSearchTSP import improveMethod
 from ScatterSearchTSP.tsp_types import TSP
 import pathlib
@@ -17,6 +16,20 @@ def test_LKImprove():
     assert len(sol) == len(initial_sol)
     for i in initial_sol:
         assert i in sol
+
+def test_LKHImprove():
+    ppath = BASE_DIR / "src" / "ScatterSearchTSP" / "tsp_instances" /  "berlin52.tsp"
+    problem = TSP.load(str(ppath))
+    improver = improveMethod.LKHImprove(problem)
+    initial_sol = tuple(range(problem.dimension))
+    sol = improver.improve(initial_sol)
+    assert sol != initial_sol
+    costs = problem.trace_tours([initial_sol, sol])
+    assert costs[1] < costs[0]
+    assert len(sol) == len(initial_sol)
+    for i in initial_sol:
+        assert i in sol
+
 
 TEST_CASES = [
         "berlin52.tsp"

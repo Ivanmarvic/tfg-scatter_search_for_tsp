@@ -1,9 +1,14 @@
 from abc import ABC, abstractmethod
+import os
+from typing import Dict
 import warnings
 from ScatterSearchTSP.tsp_types import Tour, TSP
 from pyCombinatorial.utils import util as py_util
 from pyCombinatorial.algorithm import lin_kernighan_helsgaun
 import numpy as np
+import lkh
+import pathlib
+import tempfile
 
 class ImproveMethod(ABC):
     @abstractmethod 
@@ -24,8 +29,8 @@ class LKImprove(ImproveMethod):
                'city_tour': city_tour,
                'initial_location': -1,
                'candidate_size': 5,
-               'alpha_candidates': True,
-               'ascent_iterations': 20,
+               'alpha_candidates': False,
+               'ascent_iterations': 0,
                'max_depth': 4,
                'breadth':3,
                'patching': True,
@@ -35,7 +40,7 @@ class LKImprove(ImproveMethod):
                'three_opt': True,
                'three_opt_trials': 5,
                'max_passes': 3,
-               'elite_candidates': True,
+               'elite_candidates': False,
                'seed': None,
                'use_dont_look_bits': True,
                'verbose': False,
@@ -43,6 +48,50 @@ class LKImprove(ImproveMethod):
         route, _ = lin_kernighan_helsgaun(self._distance_matrix, **parameters)
         route_base_0 = [int(node) - 1 for node in route]
         return Tour(route_base_0[:self.problem.dimension])
+
+
+PROYECT_ROOT = pathlib.Path(__file__).parent.parent.parent 
+class LKHImprove(ImproveMethod):
+    DEFAULT_PARAMS:Dict[str, int | str] = {
+            'RUNS': 1,                     
+            'MAX_TRIALS': 1,                
+            'KICKS': 0,                      # Sin perturbaciones
+            'MOVE_TYPE': 5,                  # 5-opt
+            'TRACE_LEVEL': 0,                 # Silencioso
+            'MAX_CANDIDATES': 5,
+            }
+    def __init__(self, problem:TSP, params = None) -> None:
+        self.problem = problem
+        self.params = self.DEFAULT_PARAMS.copy()
+        coordinates = [self.problem.node_coords[i] for i in range(self.problem.dimension)]
+        coordinates = np.array(coordinates, dtype=float)
+        if params is not None:
+            self.params.update(params)
+
+    def improve(self, solution: Tour) -> Tour:
+        with tempfile.NamedTemporaryFile(mode="w+", suffix=".tour", delete=False) as tour_f:
+            tour_path = tour_f.name
+            tour_f.write("NAME : InitialTour\n")
+            tour_f.write("TYPE : TOUR\n")
+            tour_f.write(f"DIMENSION : {self.problem.dimension}\n")
+            tour_f.write("TOUR_SECTION\n")
+            for node in solution:
+                tour_f.write(f"{node + 1}\n") 
+            tour_f.write("-1\n")
+            tour_f.write("EOF\n")
+        self.params["INITIAL_TOUR_FILE"] = tour_path
+
+        try:
+            solver_path = PROYECT_ROOT / "lib" / "LKH-3.0.6" / "LKH"
+            routes = lkh.solve(str(solver_path), problem=self.problem._tsp95problem, **self.params)
+            route_base_0 = []
+            for node in routes[0]:
+                route_base_0.append(node - 1)
+        finally:
+            if os.path.exists(tour_path):
+                os.remove(tour_path)
+        return Tour(route_base_0[:self.problem.dimension])
+    
 
 
 
