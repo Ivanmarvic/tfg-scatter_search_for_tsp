@@ -23,22 +23,22 @@ class LKImprove(ImproveMethod):
         parameters = {
                'city_tour': city_tour,
                'initial_location': -1,
-               'candidate_size': 20,
+               'candidate_size': 5,
                'alpha_candidates': True,
-               'ascent_iterations': 100,
-               'max_depth': 5,
-               'breadth':5,
+               'ascent_iterations': 20,
+               'max_depth': 4,
+               'breadth':3,
                'patching': True,
-               'patching_trials': 20,
-               'restarts': 2,
-               'kicks': 1,
+               'patching_trials': 2,
+               'restarts': 0,
+               'kicks': 0,
                'three_opt': True,
-               'three_opt_trials': 50,
-               'max_passes': 50,
+               'three_opt_trials': 5,
+               'max_passes': 3,
                'elite_candidates': True,
                'seed': None,
                'use_dont_look_bits': True,
-               'verbose': True,
+               'verbose': False,
              }
         route, _ = lin_kernighan_helsgaun(self._distance_matrix, **parameters)
         route_base_0 = [int(node) - 1 for node in route]
@@ -78,7 +78,7 @@ def find_first_intersection(segments):
 # this improve method is only valid if the distance has triange inequality property i.e. Euclidean-Distance like
 class CrossEliminate(ImproveMethod):
     def __init__(self, problem:TSP) -> None:
-        if(problem.edge_weight_type != "EUC_2D"):
+        if(problem.edge_weight_type not in {"EUC_2D", "GEO"}):
             warnings.warn(message=f"CrossEliminate does not support {problem.edge_weight_type}", category=UserWarning)
         self.problem = problem
 

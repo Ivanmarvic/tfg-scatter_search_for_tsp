@@ -34,7 +34,6 @@ class TSPLehmerDiversificator(DiversificationGenerator):
         super().__init__()
 
     def diversificate(self) -> Set[Tour]:
-        assert self.instances < math.factorial(self.n - 1)/2, "too many instances asked for diversification"
         output_list = set()
         n_perms = math.factorial(self.n)
         distance = n_perms // self.instances 

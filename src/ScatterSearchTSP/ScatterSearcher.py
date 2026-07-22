@@ -26,16 +26,9 @@ class ScatterSearcherTSP():
         self.combinationMethod = combinationMethod 
         self.subsetGenerator = subsetGenerator 
 
-    # def solve(self, tsp_file_path:str):
-    #     path = pathlib.Path(tsp_file_path)
-    #     if not path.is_file():
-    #         instances_dir = resources.files("src.tsp_instances")
-    #         path = instances_dir / tsp_file_path 
-    #         assert path.is_file(), f"path {tsp_file_path} is not a file aborting execution"
+    def reset(self):
+        self.subsetGenerator.reset()
 
-    #     problem = TSP.load(str(path)) 
-    #     assert problem, "unexpected error in problem loading"
-    #     initial_solutions = self.diversificator.diversificate()
     def solve(self, problem:TSP):
         init_time = time.perf_counter()
         improve_time = 0
@@ -97,4 +90,6 @@ class ScatterSearcherTSP():
         best = self.refSet.best_solution
         total_time = time.perf_counter() - init_time
         execution_data = SolverData(total_time, improve_time, loop_counter, improve_counter, refSet_history, diver_improve_time, best_cost_diver)
+        print(f"Scatter search finalized ... cost: {self.refSet.best_solution.fitness} time: {total_time}")
+        self.reset()
         return best, execution_data
