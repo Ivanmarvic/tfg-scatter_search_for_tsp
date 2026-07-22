@@ -33,9 +33,13 @@ TEST_CASES = [
 def test_ilustrativeDiversification(input_data):
     generator = diversification.IlustrativeTSPDiversification(problem_size=input_data["size"])
     out = generator.diversificate()
-    assert len(out) == input_data["instances"] 
+
+    # with canonical tour we cannot assure to match a given number of instances
+    # assert len(out) == input_data["instances"] 
     for instance in out:
         assert len(instance) == input_data["size"]
+        for i in range(input_data["size"]):
+            assert i in instance
 
 TEST_CASES = [
         ({"n": 3, "k": 5}, [2,1,0]),

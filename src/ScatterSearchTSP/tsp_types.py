@@ -1,8 +1,29 @@
-from typing import Tuple, NamedTuple, Collection
+from typing import NamedTuple, Collection, Iterable , Tuple
 import tsplib95 as tsplib
 from pathlib import Path
 
-type Tour = Tuple[int, ...]
+
+# class Tour(tuple):
+#     def __new__(cls, iterable:Iterable):
+#         return super().__new__(cls, iterable)
+# this type is adapted to symetric TSP only 
+class Tour(tuple):
+    def __new__(cls, iterable:Iterable):
+        nodes = list(iterable)
+        min_value = min(nodes)
+        min_idx = nodes.index(min_value)
+        idx_norm = nodes[min_idx:] + nodes[:min_idx]
+        if idx_norm[-1] < idx_norm[1]:
+            canonical = [idx_norm[0]] + idx_norm[:0:-1]
+        else:
+            canonical = idx_norm
+        return super().__new__(cls, canonical)
+
+
+            
+
+
+
 class FitTour(NamedTuple):
     fitness: int
     tour: Tour

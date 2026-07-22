@@ -34,16 +34,25 @@ class TSPLehmerDiversificator(DiversificationGenerator):
         super().__init__()
 
     def diversificate(self) -> Set[Tour]:
-        output_list = list()
+        assert self.instances < math.factorial(self.n - 1)/2, "too many instances asked for diversification"
+        output_list = set()
         n_perms = math.factorial(self.n)
         distance = n_perms // self.instances 
         original_array = list(range(self.n))
         i = 0
         while i < n_perms and len(output_list) < self.instances:
             instance = lehmer_Permutation(i, original_array)
-            output_list.append(tuple(instance))
+            output_list.add(Tour(instance))
             i += distance
-        return set(output_list)
+
+        if len(output_list) < self.instances:
+            i = 0
+            while i < n_perms and len(output_list) < self.instances:
+                instance = lehmer_Permutation(i, original_array)
+                output_list.add(Tour(instance))
+                i += 1
+
+        return output_list
 
         
 
@@ -59,7 +68,7 @@ class TSPRandomDiversification(DiversificationGenerator):
         for _ in range(self.instances):
             new_instance = city_list.copy()
             random.shuffle(new_instance)
-            output_list.append(tuple(new_instance))
+            output_list.append(Tour(new_instance))
         return set(output_list)
 
 # O(n²) o así
@@ -89,7 +98,7 @@ class IlustrativeTSPDiversification(DiversificationGenerator):
         output_list = list()
         for i in range(1,self.n+1):
             instance = self._perm_h(i)
-            output_list.append(tuple(instance))
+            output_list.append(Tour(instance))
         return set(output_list)
 
 

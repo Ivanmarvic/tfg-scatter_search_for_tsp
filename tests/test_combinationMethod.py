@@ -1,6 +1,6 @@
 import pytest 
 from ScatterSearchTSP import combinationMethod
-from ScatterSearchTSP.tsp_types import TSP
+from ScatterSearchTSP.tsp_types import TSP, Tour
 import pathlib 
 
 BASE_DIR = pathlib.Path(__file__).parent.parent
@@ -18,7 +18,7 @@ def test_NaiveCombinationMethod(subset, expected):
     assert len(solution) == dimension 
     for i in subset[0]: 
         assert i in solution
-    assert solution == expected
+    assert solution == Tour(expected)
 
 
 TEST_CASES = [ 
@@ -38,6 +38,6 @@ def test_ConvexTSPCombination(subset, expected, problem_str):
     assert len(solution) == dimension 
     for i in subset[0]: 
         assert i in solution
-    assert solution == expected
+    assert solution == Tour(expected)
 
     

@@ -21,6 +21,7 @@ def min_set_distance(element, distanceSet:Collection, distance_fn:Callable[[Any,
         
     return min_distance
 
+# this distance calculation is too Naive !!! 
 def permutation_difference(tour1:Tour, tour2:Tour) -> int:
     assert len(tour1) == len(tour2), "error trying to compute a distance between tours with different length"
     distance = 0
@@ -54,7 +55,7 @@ def edge_difference(tour1:Tour, tour2: Tour) -> int:
             start, end = end, start
         edges_2.add((start,end))
 
-    return abs(len(edges_1) - len(edges_2))
+    return len(edges_1 - edges_2)
 
 
 

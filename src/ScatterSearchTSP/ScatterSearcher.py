@@ -12,6 +12,8 @@ class SolverData(NamedTuple):
     scatter_loops: int 
     improve_counter: int
     refSet_update_data: Dict
+    diver_improve_time: float
+    best_cost_diver: float
 
 class ScatterSearcherTSP():
     def __init__(self, diversificator: diversification.DiversificationGenerator, 
@@ -59,6 +61,9 @@ class ScatterSearcherTSP():
 
         nsol = self.refSet.set(fit_tours) 
         print(f"working with {nsol} initial solutions")
+        print(f"best solution from diversification {self.refSet.best_solution.fitness}")
+        diver_improve_time = time.perf_counter() - init_time
+        best_cost_diver = self.refSet.best_solution.fitness
 
         updated = True 
         loop_counter = 0
@@ -87,9 +92,9 @@ class ScatterSearcherTSP():
                 refSet_history[loop_counter] = self.refSet.last_inserted_indices
                 print(f" {len(refSet_history[loop_counter])} new candidates found by combination")
                 if 0 in self.refSet.last_inserted_indices:
-                    print("New best solution found by combination ...")
+                    print(f"New best solution found by combination ... cost: {self.refSet.best_solution.fitness}")
 
         best = self.refSet.best_solution
         total_time = time.perf_counter() - init_time
-        execution_data = SolverData(total_time, improve_time, loop_counter, improve_counter, refSet_history)
+        execution_data = SolverData(total_time, improve_time, loop_counter, improve_counter, refSet_history, diver_improve_time, best_cost_diver)
         return best, execution_data

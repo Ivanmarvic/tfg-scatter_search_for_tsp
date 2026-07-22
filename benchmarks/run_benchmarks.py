@@ -13,7 +13,7 @@ TEST_CASES = [
     # ppath = BASE_DIR / "src" / "ScatterSearchTSP" / "tsp_instances" /  problem_file
 
 def run_scatter_benchmarks(
-    searchers: List[Any], 
+    searchers: List[ScatterSearcher.ScatterSearcherTSP], 
     problem: Any, 
     problem_name: str, 
     opt_cost: float, 
@@ -51,6 +51,8 @@ def run_scatter_benchmarks(
             "improve_method_calls": getattr(data, "improve_counter", None),
             "found_tour": sol.tour,
             "refSet_update_history": getattr(data, "refSet_update_data", None),
+            "diversification_improve_time": data.diver_improve_time, 
+            "diver_best_cost": data.best_cost_diver,
         })
 
     return pd.DataFrame(rows)
@@ -137,11 +139,43 @@ def benchmark_combination_method(problem_name, solution_name, params):
     ss4 = create_base_searcher(im_cross, im_lkh, com_convex)
     df = run_scatter_benchmarks([ss1, ss2, ss3, ss4], problem, problem_name, opt_cost, params)
     return df
+def benchmark_refSetSizes(problem_name, solution_name, sizes):
+    def create_base_searcher(im1, im2, params):
+        diversificator = diversification.IlustrativeTSPDiversification(problem_size=problem.dimension) 
+        ref = refSet.RefSetFixedDiversity(b_size=params["b_size"], d_size=params["d_size"], distance_fn=utils.edge_difference)
+        com = combinationMethod.NaiveTSPCombination()
+        sub = subsetGenerator.SimpleSubsetGenerator()
+        ss = ScatterSearcher.ScatterSearcherTSP(diversificator=diversificator, improveMethod1= im1, improveMethod2= im2, 
+                                                refSet=ref, combinationMethod=com, subsetGenerator=sub)
+        return ss
+
+    ppath = BASE_DIR / "src" / "ScatterSearchTSP" / "tsp_instances" /  problem_name
+    spath = BASE_DIR / "src" / "ScatterSearchTSP" / "tsp_instances" /  solution_name
+
+    problem = TSP.load(str(ppath))
+    opt_sol = tsplib.load(str(spath))
+    tsplib_problem = tsplib.load(str(ppath))
+    opt_cost = tsplib_problem.trace_tours(opt_sol.tours)[0]
+    params = {}
+    searchers = []
+    for s in sizes:
+        params["b_size"] = s[0]
+        params["d_size"] = s[1]
+        im_cross = improveMethod.CrossEliminate(problem) 
+        im_lkh = improveMethod.LKImprove(problem)
+        ss1 = create_base_searcher(im_cross, im_cross, params)
+        ss2 = create_base_searcher(im_cross, im_lkh, params)
+        searchers.append(ss1)
+        searchers.append(ss2)
+    df = run_scatter_benchmarks(searchers, problem, problem_name, opt_cost, params)
+    return df
 
 
 params = {"b_size": 6, "d_size": 6}
-# results1 = benchmark_improve_method("berlin52.tsp", "berlin52.opt.tour", params)
-# results1.to_csv(RESULTS_DIR / "results_improve_method.csv")
-results2 = benchmark_combination_method("berlin52.tsp", "berlin52.opt.tour", params)
-results2.to_csv(RESULTS_DIR / "results_combination_method.csv")
+results1 = benchmark_improve_method("berlin52.tsp", "berlin52.opt.tour", params)
+results1.to_csv(RESULTS_DIR / "results_improve_method.csv")
+# results2 = benchmark_combination_method("berlin52.tsp", "berlin52.opt.tour", params)
+# results2.to_csv(RESULTS_DIR / "results_combination_method.csv")
+# results3 = benchmark_refSetSizes("berlin52.tsp", "berlin52.opt.tour", [(2,0),(2,2), (4,4), (8,8), (10,10)])
+# results3.to_csv(RESULTS_DIR / "results_ref_set_sizes.csv")
 

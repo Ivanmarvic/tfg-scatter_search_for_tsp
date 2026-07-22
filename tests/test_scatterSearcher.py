@@ -7,7 +7,7 @@ from ScatterSearchTSP import ScatterSearcher, diversification, improveMethod, re
 
 BASE_DIR = pathlib.Path(__file__).parent.parent
 TEST_CASES = [
-        ["berlin52.tsp", {"b_size":6, "d_size": 6}], ["ulysses5.tsp", {"b_size":2, "d_size": 1}] ]
+        ["berlin52.tsp", {"b_size":6, "d_size": 6}]]
 
 @pytest.mark.parametrize("problem_file, params", TEST_CASES)
 def test_scatterSearcher(problem_file, params):

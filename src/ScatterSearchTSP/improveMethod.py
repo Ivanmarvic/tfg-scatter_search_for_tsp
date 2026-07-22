@@ -42,7 +42,7 @@ class LKImprove(ImproveMethod):
              }
         route, _ = lin_kernighan_helsgaun(self._distance_matrix, **parameters)
         route_base_0 = [int(node) - 1 for node in route]
-        return tuple(route_base_0[:self.problem.dimension])
+        return Tour(route_base_0[:self.problem.dimension])
 
 
 
@@ -119,7 +119,7 @@ class CrossEliminate(ImproveMethod):
             else:
                 improved = False
 
-        return tuple(new_sol)
+        return Tour(new_sol)
 
 
 

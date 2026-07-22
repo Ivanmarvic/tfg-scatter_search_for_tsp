@@ -32,7 +32,7 @@ class NaiveTSPCombination(CombinationMethod):
                 j = round_inc(j,dimension)
 
             combined_solution.append(l[j])
-        return tuple(combined_solution)
+        return Tour(combined_solution)
 
 
 @dataclass(slots=True)
@@ -129,7 +129,7 @@ class ConvexTSPCombination(CombinationMethod):
                     visited.add(neighboar)
                     combined_solution.append(neighboar)
 
-        return tuple(combined_solution)
+        return Tour(combined_solution)
 
 
 
