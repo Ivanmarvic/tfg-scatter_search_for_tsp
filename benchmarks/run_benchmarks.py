@@ -7,6 +7,7 @@ from typing import List, Dict, Any
 
 RESULTS_DIR = pathlib.Path(__file__).parent / "results"
 BASE_DIR = pathlib.Path(__file__).parent.parent
+
 def run_scatter_benchmarks(
     searchers: List[ScatterSearcher.ScatterSearcherTSP], 
     problem: Any, 
@@ -15,6 +16,11 @@ def run_scatter_benchmarks(
     params: Dict[str, Any],
     n_runs:int = 1 
 ) -> pd.DataFrame:
+    def get_method_name(method_obj: Any) -> str:
+        """Devuelve la propiedad .name del objeto si existe, o el nombre de su clase."""
+        if hasattr(method_obj, "name"):
+            return getattr(method_obj, "name")
+        return getattr(method_obj, "__class__", type(method_obj)).__name__
     rows = []
     for ss in searchers:
         runs_data:List[ScatterSearcher.SolverData] = []
@@ -38,12 +44,12 @@ def run_scatter_benchmarks(
 
         rows.append({
             "instancia": problem_name,
-            "diversificator": getattr(ss.diversificator, "__class__", type(ss.diversificator)).__name__,
-            "improveMethod1": getattr(ss.improveMethod1, "__clanss__", type(ss.improveMethod1)).__name__,
-            "improveMethod2": getattr(ss.improveMethod2, "__class__", type(ss.improveMethod2)).__name__,
-            "RefSetMethod": getattr(ss.refSet, "__class__", type(ss.refSet)).__name__,
-            "combinationMethod": getattr(ss.combinationMethod, "__class__", type(ss.combinationMethod)).__name__,
-            "subsetGenerationMethod": getattr(ss.subsetGenerator, "__class__", type(ss.subsetGenerator)).__name__,
+            "diversificator": get_method_name(ss.diversificator),
+            "improveMethod1": get_method_name(ss.improveMethod1),
+            "improveMethod2": get_method_name(ss.improveMethod2),
+            "RefSetMethod": get_method_name(ss.refSet),
+            "combinationMethod": get_method_name(ss.combinationMethod),
+            "subsetGenerationMethod": get_method_name(ss.subsetGenerator),
             "diver_size": params.get("diver_size"),
             "b_size": params.get("b_size"),
             "d_size": params.get("d_size"),
@@ -62,7 +68,7 @@ def run_scatter_benchmarks(
 
     return pd.DataFrame(rows)
 
-def benchmark_improve_method(problem_name, solution_name, params):
+def benchmark_improve_method_python(problem_name, solution_name, params):
 
     def create_base_searcher(im1, im2):
         diversificator = diversification.TSPLehmerDiversificator(problem_size=problem.dimension, number_of_problem_instances=params["diver_size"]) 
@@ -82,13 +88,13 @@ def benchmark_improve_method(problem_name, solution_name, params):
     opt_cost = tsplib_problem.trace_tours(opt_sol.tours)[0]
 
     im_cross = improveMethod.CrossEliminate(problem) 
-    im_lkh = improveMethod.LKHImprove(problem)
-    # ss1 = create_base_searcher(im_cross, im_cross)
+    im_lkh = improveMethod.LKImprove(problem)
+    ss1 = create_base_searcher(im_cross, im_cross)
     ss2 = create_base_searcher(im_lkh, im_lkh)
-    # ss3 = create_base_searcher(im_cross, im_lkh)
-    # ss4 = create_base_searcher(im_lkh, im_cross)
-    # df = run_scatter_benchmarks([ss1, ss2, ss3, ss4], problem, problem_name, opt_cost, params)
-    df = run_scatter_benchmarks([ss2], problem, problem_name, opt_cost, params)
+    ss3 = create_base_searcher(im_cross, im_lkh)
+    ss4 = create_base_searcher(im_lkh, im_cross)
+    df = run_scatter_benchmarks([ss1, ss2, ss3, ss4], problem, problem_name, opt_cost, params, n_runs=2)
+    # df = run_scatter_benchmarks([ss2], problem, problem_name, opt_cost, params)
     return df 
 def benchmark_combination_method(problem_name, solution_name, params):
     def create_base_searcher(im1, im2, com):
@@ -107,15 +113,37 @@ def benchmark_combination_method(problem_name, solution_name, params):
     tsplib_problem = tsplib.load(str(ppath))
     opt_cost = tsplib_problem.trace_tours(opt_sol.tours)[0]
 
-    im_cross = improveMethod.CrossEliminate(problem) 
-    im_lkh = improveMethod.LKHImprove(problem)
+    simple_params = {
+            'RUNS': 1,                     
+            'MAX_TRIALS': 1,                
+            'KICKS': 0,                      
+            'MOVE_TYPE': 2,                 
+            'TRACE_LEVEL': 0,              
+            'MAX_CANDIDATES': 5,
+            'ASCENT_CANDIDATES': 2,
+            'OPTIMUM': opt_cost,
+            }
+
+    complex_params = {
+            'RUNS': 1,                     
+            'MAX_TRIALS': 1,                
+            'KICKS': 0,                      # Sin perturbaciones
+            'MOVE_TYPE': 5,                  # 5-opt
+            'TRACE_LEVEL': 0,                 # Silencioso
+            'MAX_CANDIDATES': 5,
+            'ASCENT_CANDIDATES': 50,
+            'OPTIMUM': opt_cost,
+            }
+
+    im_simple_lkh = improveMethod.LKHImprove(problem, params=simple_params) 
+    im_lkh = improveMethod.LKHImprove(problem, params=complex_params)
     com_naive = combinationMethod.NaiveTSPCombination()
     com_convex = combinationMethod.ConvexTSPCombination(problem)
-    ss1 = create_base_searcher(im_cross, im_cross, com_naive)
-    ss2 = create_base_searcher(im_cross, im_cross, com_convex)
-    ss3 = create_base_searcher(im_cross, im_lkh, com_naive)
-    ss4 = create_base_searcher(im_cross, im_lkh, com_convex)
-    df = run_scatter_benchmarks([ss1, ss2, ss3, ss4], problem, problem_name, opt_cost, params)
+    ss1 = create_base_searcher(im_simple_lkh, im_simple_lkh, com_naive)
+    ss2 = create_base_searcher(im_simple_lkh, im_simple_lkh, com_convex)
+    ss3 = create_base_searcher(im_simple_lkh, im_lkh, com_naive)
+    ss4 = create_base_searcher(im_simple_lkh, im_lkh, com_convex)
+    df = run_scatter_benchmarks([ss1, ss2, ss3, ss4], problem, problem_name, opt_cost, params, n_runs=5)
     return df
 def benchmark_refSetSizes(problem_name, solution_name, sizes, params):
     def create_base_searcher(im1, im2, params):
@@ -136,26 +164,69 @@ def benchmark_refSetSizes(problem_name, solution_name, sizes, params):
     opt_cost = tsplib_problem.trace_tours(opt_sol.tours)[0]
     in_params = {}
     searchers = []
+    simple_params = {
+            'RUNS': 1,                     
+            'MAX_TRIALS': 1,                
+            'KICKS': 0,                      
+            'MOVE_TYPE': 2,                 
+            'TRACE_LEVEL': 0,              
+            'MAX_CANDIDATES': 5,
+            'ASCENT_CANDIDATES': 2,
+            'OPTIMUM': opt_cost,
+            }
+
+    complex_params = {
+            'RUNS': 1,                     
+            'MAX_TRIALS': 1,                
+            'KICKS': 0,                      # Sin perturbaciones
+            'MOVE_TYPE': 5,                  # 5-opt
+            'TRACE_LEVEL': 0,                 # Silencioso
+            'MAX_CANDIDATES': 5,
+            'ASCENT_CANDIDATES': 50,
+            'OPTIMUM': opt_cost,
+            }
     for s in sizes:
         in_params["b_size"] = s[0]
         in_params["d_size"] = s[1]
         in_params["diver_size"] = params["diver_size"]
-        im_cross = improveMethod.CrossEliminate(problem) 
-        im_lkh = improveMethod.LKHImprove(problem)
-        ss1 = create_base_searcher(im_cross, im_cross, in_params)
-        ss2 = create_base_searcher(im_cross, im_lkh, in_params)
+        im_simple_lkh = improveMethod.LKHImprove(problem, params=simple_params) 
+        im_lkh = improveMethod.LKHImprove(problem, params=complex_params)
+        ss1 = create_base_searcher(im_simple_lkh, im_simple_lkh, in_params)
+        ss2 = create_base_searcher(im_simple_lkh, im_lkh, in_params)
         searchers.append(ss1)
         searchers.append(ss2)
-    df = run_scatter_benchmarks(searchers, problem, problem_name, opt_cost, in_params)
+    df = run_scatter_benchmarks(searchers, problem, problem_name, opt_cost, in_params, n_runs=5)
     return df
 
 def benchmark_diversification(problem_name, solution_name, params):
 
     def create_base_searcher(diver):
+        simple_params = {
+                'RUNS': 1,                     
+                'MAX_TRIALS': 1,                
+                'KICKS': 0,                      
+                'MOVE_TYPE': 2,                 
+                'TRACE_LEVEL': 0,              
+                'MAX_CANDIDATES': 5,
+                'ASCENT_CANDIDATES': 2,
+                'OPTIMUM': opt_cost,
+                }
+
+        complex_params = {
+                'RUNS': 1,                     
+                'MAX_TRIALS': 1,                
+                'KICKS': 0,                      # Sin perturbaciones
+                'MOVE_TYPE': 5,                  # 5-opt
+                'TRACE_LEVEL': 0,                 # Silencioso
+                'MAX_CANDIDATES': 5,
+                'ASCENT_CANDIDATES': 50,
+                'OPTIMUM': opt_cost,
+                }
+
         ref = refSet.RefSetFixedDiversity(b_size=params["b_size"], d_size=params["d_size"], distance_fn=utils.edge_difference)
         com = combinationMethod.NaiveTSPCombination()
-        im1 = improveMethod.CrossEliminate(problem) 
-        im2 = improveMethod.CrossEliminate(problem) 
+        im1 = improveMethod.LKHImprove(problem, simple_params) 
+        im2 = improveMethod.LKHImprove(problem, complex_params) 
         sub = subsetGenerator.SimpleSubsetGenerator()
         ss = ScatterSearcher.ScatterSearcherTSP(diversificator=diver, improveMethod1= im1, improveMethod2= im2, 
                                                 refSet=ref, combinationMethod=com, subsetGenerator=sub)
@@ -170,33 +241,42 @@ def benchmark_diversification(problem_name, solution_name, params):
     opt_cost = tsplib_problem.trace_tours(opt_sol.tours)[0]
 
     diver1 = diversification.IlustrativeTSPDiversification(problem_size=problem.dimension) 
-    diver2 = diversification.TSPLehmerDiversificator(problem_size=problem.dimension, number_of_problem_instances=problem.dimension) 
-    diver3 = diversification.TSPRandomDiversification(problem_size=problem.dimension, number_of_problem_instances=problem.dimension)
+    diver2 = diversification.TSPLehmerDiversificator(problem_size=problem.dimension, number_of_problem_instances=params["diver_size"]) 
+    diver3 = diversification.TSPRandomDiversification(problem_size=problem.dimension, number_of_problem_instances=params["diver_size"])
 
     ss1 = create_base_searcher(diver1)
     ss2 = create_base_searcher(diver2)
     ss3 = create_base_searcher(diver3)
-    df = run_scatter_benchmarks([ss1, ss2, ss3], problem, problem_name, opt_cost, params)
+    df = run_scatter_benchmarks([ss1, ss2, ss3], problem, problem_name, opt_cost, params, n_runs=5)
     return df 
 
-# PROBLEM_FILES = [ ("berlin52.tsp", "berlin52.opt.tour"), ("a280.tsp", "a280.opt.tour"), ("gr96.tsp", "gr96.opt.tour")]
-PROBLEM_FILES = [ ("a280.tsp", "a280.opt.tour")]
-
-results = []
+# PROBLEM_FILES = [ ("berlin52.tsp", "berlin52.opt.tour")]
+PROBLEM_FILES = [ ("berlin52.tsp", "berlin52.opt.tour"), ("gr96.tsp", "gr96.opt.tour")]
 for problem_name, best_tour in PROBLEM_FILES:
+    results = []
     params = {"diver_size": 50, "b_size": 5, "d_size": 5}
-    results1 = benchmark_improve_method(problem_name, best_tour, params)
+    results1 = benchmark_improve_method_python(problem_name, best_tour, params)
     results.append(results1)
-    # results2 = benchmark_combination_method(problem_name, best_tour, params)
-    # results.append(results2)
-    # results3 = benchmark_refSetSizes(problem_name, best_tour, [(5,5),(10,10), (15,15)], params)
-    # results.append(results3)
-    # results4 = benchmark_diversification(problem_name, best_tour, params)
-    # results.append(results4)
+    df = pd.DataFrame(results[0])
+    for i in range(1, len(results)):
+        df = pd.concat([df, results[i]], ignore_index=True)
+    df.to_csv( BASE_DIR / "benchmarks" / "results" / f"results_{problem_name}.csv")
 
-df = pd.DataFrame(results[0])
-for i in range(1, len(results)):
-    df = pd.concat([df, results[i]], ignore_index=True)
-df.to_csv( BASE_DIR / "benchmarks" / "results" / "results_global.csv")
+PROBLEM_FILES = [ ("a280.tsp", "a280.opt.tour"), ("gr666.tsp", "gr666.opt.tour"), ("pa561.tsp", "pa561.opt.tour")]
+# PROBLEM_FILES = [ ("a280.tsp", "a280.opt.tour")]
+for problem_name, best_tour in PROBLEM_FILES:
+    results = []
+    params = {"diver_size": 100, "b_size": 5, "d_size": 5}
+    results2 = benchmark_combination_method(problem_name, best_tour, params)
+    results.append(results2)
+    results3 = benchmark_refSetSizes(problem_name, best_tour, [(5,5),(10,10), (15,15)], params)
+    results.append(results3)
+    results4 = benchmark_diversification(problem_name, best_tour, params)
+    results.append(results4)
+    print(f"ESCRIBIENDO RESULTADOS de {problem_name}")
+    df = pd.DataFrame(results[0])
+    for i in range(1, len(results)):
+        df = pd.concat([df, results[i]], ignore_index=True)
+    df.to_csv( BASE_DIR / "benchmarks" / "results" / f"results_c_{problem_name}.csv")
 
 

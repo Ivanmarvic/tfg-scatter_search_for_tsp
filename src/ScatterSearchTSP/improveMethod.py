@@ -38,8 +38,8 @@ class LKImprove(ImproveMethod):
                'restarts': 0,
                'kicks': 0,
                'three_opt': True,
-               'three_opt_trials': 5,
-               'max_passes': 3,
+               'three_opt_trials': 2,
+               'max_passes': 1,
                'elite_candidates': False,
                'seed': None,
                'use_dont_look_bits': True,
@@ -91,6 +91,16 @@ class LKHImprove(ImproveMethod):
             if os.path.exists(tour_path):
                 os.remove(tour_path)
         return Tour(route_base_0[:self.problem.dimension])
+    @property
+    def name(self) -> str:
+        move_type = self.params.get('MOVE_TYPE', 'LKH')
+        ascent = self.params.get('ASCENT_CANDIDATES', 0)
+        if move_type == 2 and int(ascent) <= 2:
+            return "LKHImprove_Simple(2-opt)"
+        elif move_type == 5:
+            return f"LKHImprove_Complex(5-opt_A{ascent})"
+        
+        return f"LKHImprove({move_type}-opt)"
     
 
 
