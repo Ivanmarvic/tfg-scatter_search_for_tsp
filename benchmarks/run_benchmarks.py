@@ -251,18 +251,19 @@ def benchmark_diversification(problem_name, solution_name, params):
     return df 
 
 # PROBLEM_FILES = [ ("berlin52.tsp", "berlin52.opt.tour")]
-PROBLEM_FILES = [ ("berlin52.tsp", "berlin52.opt.tour"), ("gr96.tsp", "gr96.opt.tour")]
-for problem_name, best_tour in PROBLEM_FILES:
-    results = []
-    params = {"diver_size": 50, "b_size": 5, "d_size": 5}
-    results1 = benchmark_improve_method_python(problem_name, best_tour, params)
-    results.append(results1)
-    df = pd.DataFrame(results[0])
-    for i in range(1, len(results)):
-        df = pd.concat([df, results[i]], ignore_index=True)
-    df.to_csv( BASE_DIR / "benchmarks" / "results" / f"results_{problem_name}.csv")
+# PROBLEM_FILES = [ ("berlin52.tsp", "berlin52.opt.tour"), ("gr96.tsp", "gr96.opt.tour")]
+# for problem_name, best_tour in PROBLEM_FILES:
+#     results = []
+#     params = {"diver_size": 50, "b_size": 5, "d_size": 5}
+#     results1 = benchmark_improve_method_python(problem_name, best_tour, params)
+#     results.append(results1)
+#     df = pd.DataFrame(results[0])
+#     for i in range(1, len(results)):
+#         df = pd.concat([df, results[i]], ignore_index=True)
+#     df.to_csv( BASE_DIR / "benchmarks" / "results" / f"results_{problem_name}.csv")
 
-PROBLEM_FILES = [ ("a280.tsp", "a280.opt.tour"), ("gr666.tsp", "gr666.opt.tour"), ("pa561.tsp", "pa561.opt.tour")]
+# PROBLEM_FILES = [ ("a280.tsp", "a280.opt.tour"), ("gr666.tsp", "gr666.opt.tour"), ("pa561.tsp", "pa561.opt.tour")]
+PROBLEM_FILES = [ ("pa561.tsp", "pa561.opt.tour")]
 # PROBLEM_FILES = [ ("a280.tsp", "a280.opt.tour")]
 for problem_name, best_tour in PROBLEM_FILES:
     results = []
